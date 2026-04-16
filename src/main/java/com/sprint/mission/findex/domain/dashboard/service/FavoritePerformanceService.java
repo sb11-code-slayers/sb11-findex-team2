@@ -55,7 +55,7 @@ public class FavoritePerformanceService {
                 .sorted(Comparator.comparing(IndexData::getBaseDate).reversed())
                 .toList();
 
-        IndexData currentData = sorted.get(sorted.size() - 1);
+        IndexData currentData = sorted.get(0);
         LocalDate targetDate = getTargetDate(currentData.getBaseDate(), periodType);
         IndexData beforeData = findClosestBeforeOrEqual(sorted, targetDate);
 
@@ -88,14 +88,12 @@ public class FavoritePerformanceService {
     }
 
     private IndexData findClosestBeforeOrEqual(List<IndexData> sorted, LocalDate targetDate) {
-        IndexData result = null;
-
         for (IndexData indexData : sorted) {
             if (!indexData.getBaseDate().isAfter(targetDate)) {
-            result = indexData;
+                return indexData;
             }
         }
-        return result;
+        return null;
     }
 
     private BigDecimal calculateFluctuationRate(
