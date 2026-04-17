@@ -113,4 +113,68 @@ public class KrxOpenApiClientImpl implements KrxOpenApiClient {
             throw new ApiException(ERROR.SYNC_JOB_OPEN_API_ERROR);
         }
     }
+
+    @Override
+    public List<IndexDataApiResponse> fetchByDate(LocalDate date) {
+        if (date == null) {
+            throw new ApiException(ERROR.COMMON_INVALID_REQUEST);
+        }
+        if (date.isAfter(LocalDate.now())) {
+            throw new ApiException(ERROR.COMMON_INVALID_REQUEST);
+        }
+
+        try {
+            int pageNo = 1;
+            int numOfRows = 1000;
+            List<IndexDataApiResponse> allItems = new ArrayList<>();
+
+            while (true) {
+                String url = baseUrl + "/getStockMarketIndex"
+                        + "?serviceKey=" + apiKey
+                        + "&resultType=json"
+                        + "&pageNo=" + pageNo
+                        + "&numOfRows=" + numOfRows
+                        + "&beginBasDt=" + date.format(DateTimeFormatter.BASIC_ISO_DATE)
+                        + "&endBasDt=" + date.format(DateTimeFormatter.BASIC_ISO_DATE);
+
+                URI uri = URI.create(url);
+                String responseBody = restTemplate.getForObject(uri, String.class);
+
+                if (responseBody == null || responseBody.isBlank()) {
+                    break;
+                }
+
+                KrxApiResponseWrapper wrapper =
+                        objectMapper.readValue(responseBody, KrxApiResponseWrapper.class);
+
+                if (wrapper.response() == null
+                        || wrapper.response().body() == null
+                        || wrapper.response().body().items() == null) {
+                    break;
+                }
+
+                List<IndexDataApiResponse> pageItems =
+                        wrapper.response().body().items().item();
+
+                if (pageItems == null || pageItems.isEmpty()) {
+                    break;
+                }
+
+                allItems.addAll(pageItems);
+
+                if (pageItems.size() < numOfRows) {
+                    break;
+                }
+
+                pageNo++;
+            }
+
+            return allItems.isEmpty() ? Collections.emptyList() : allItems;
+
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiException(ERROR.SYNC_JOB_OPEN_API_ERROR);
+        }
+    }
 }

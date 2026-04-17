@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface KrxOpenApiClient {
     List<IndexDataApiResponse> fetchByDateRange(String indexName, LocalDate from, LocalDate to);
+    List<IndexDataApiResponse> fetchByDate(LocalDate date);
 }
