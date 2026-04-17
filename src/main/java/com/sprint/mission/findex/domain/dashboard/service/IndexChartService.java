@@ -7,6 +7,7 @@ import com.sprint.mission.findex.domain.indexdata.entity.IndexData;
 import com.sprint.mission.findex.domain.indexdata.repository.IndexDataRepository;
 import com.sprint.mission.findex.domain.indexinfo.entity.IndexInfo;
 import com.sprint.mission.findex.domain.indexinfo.repository.IndexInfoRepository;
+import com.sprint.mission.findex.global.exception.ApiException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+
+import static com.sprint.mission.findex.global.exception.ApiException.ERROR.INDEX_INFO_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -32,7 +35,7 @@ public class IndexChartService {
             IndexChartPeriodType periodType
     ) {
         IndexInfo indexInfo = indexInfoRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("지수 정보를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException(INDEX_INFO_NOT_FOUND));
 
         LocalDate fromDate = getFromDate(periodType);
 
