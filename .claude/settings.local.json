@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "WebFetch(domain:sprint-project-1196140422.ap-northeast-2.elb.amazonaws.com)",
-      "Bash(python3 -c ' *)"
-    ]
-  }
-}
