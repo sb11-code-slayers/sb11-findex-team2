@@ -135,7 +135,7 @@ public class KrxOpenApiClientImpl implements KrxOpenApiClient {
                         + "&pageNo=" + pageNo
                         + "&numOfRows=" + numOfRows
                         + "&beginBasDt=" + date.format(DateTimeFormatter.BASIC_ISO_DATE)
-                        + "&endBasDt=" + date.format(DateTimeFormatter.BASIC_ISO_DATE);
+                        + "&endBasDt=" + date.plusDays(1).format(DateTimeFormatter.BASIC_ISO_DATE);
 
                 URI uri = URI.create(url);
                 String responseBody = restTemplate.getForObject(uri, String.class);

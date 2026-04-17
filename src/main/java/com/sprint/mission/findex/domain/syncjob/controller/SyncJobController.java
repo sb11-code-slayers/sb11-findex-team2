@@ -2,6 +2,7 @@ package com.sprint.mission.findex.domain.syncjob.controller;
 
 import com.sprint.mission.findex.domain.syncjob.controller.api.SyncJobApi;
 import com.sprint.mission.findex.domain.syncjob.dto.IndexDataSyncRequest;
+import com.sprint.mission.findex.domain.syncjob.dto.IndexInfoSyncRequest;
 import com.sprint.mission.findex.domain.syncjob.dto.SyncJobResponse;
 import com.sprint.mission.findex.domain.syncjob.dto.SyncJobSearchCondition;
 import com.sprint.mission.findex.domain.syncjob.service.SyncJobService;
@@ -21,6 +22,17 @@ import java.util.UUID;
 public class SyncJobController implements SyncJobApi {
 
   private final SyncJobService syncJobService;
+
+  @PostMapping("/index-infos")
+  @Override
+  public ResponseEntity<String> syncIndexInfos(
+      @Valid @RequestBody IndexInfoSyncRequest request,
+      HttpServletRequest servletRequest) {
+
+    String workerIp = servletRequest.getRemoteAddr();
+    syncJobService.syncIndexInfos(request.targetDate(), workerIp);
+    return ResponseEntity.ok("지수 정보 연동이 성공적으로 완료되었습니다.");
+  }
 
   @PostMapping("/index-data")
   @Override
