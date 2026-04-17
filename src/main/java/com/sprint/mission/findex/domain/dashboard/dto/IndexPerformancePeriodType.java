@@ -1,6 +1,6 @@
 package com.sprint.mission.findex.domain.dashboard.dto;
 
-public enum PerformancePeriodType {
+public enum IndexPerformancePeriodType {
     DAILY,
     WEEKLY,
     MONTHLY

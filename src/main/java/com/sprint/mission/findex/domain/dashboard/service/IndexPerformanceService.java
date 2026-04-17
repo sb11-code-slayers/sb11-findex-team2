@@ -1,7 +1,7 @@
 package com.sprint.mission.findex.domain.dashboard.service;
 
-import com.sprint.mission.findex.domain.dashboard.dto.FavoritePerformanceResponse;
-import com.sprint.mission.findex.domain.dashboard.dto.PerformancePeriodType;
+import com.sprint.mission.findex.domain.dashboard.dto.IndexPerformanceResponse;
+import com.sprint.mission.findex.domain.dashboard.dto.IndexPerformancePeriodType;
 import com.sprint.mission.findex.domain.indexdata.entity.IndexData;
 import com.sprint.mission.findex.domain.indexdata.repository.IndexDataRepository;
 import com.sprint.mission.findex.domain.indexinfo.entity.IndexInfo;
@@ -20,26 +20,26 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class FavoritePerformanceService {
+public class IndexPerformanceService {
 
     private static final LocalDate Min_Date = LocalDate.of(1900, 1, 1);
 
     private final IndexInfoRepository indexInfoRepository;
     private final IndexDataRepository indexDataRepository;
 
-    public List<FavoritePerformanceResponse> getFavoritePerformance(
-            PerformancePeriodType periodType
+    public List<IndexPerformanceResponse> getFavoriteIndexPerformance(
+            IndexPerformancePeriodType periodType
     ) {
         return indexInfoRepository.findAll().stream()
-                .filter(indexInfo -> Boolean.TRUE.equals(indexInfo.getFavorite()))
-                .map(indexInfo -> toFavoritePerformance(indexInfo, periodType))
+                .filter(indexInfo -> indexInfo.getFavorite())
+                .map(indexInfo -> toIndexPerformance(indexInfo, periodType))
                 .filter(Objects::nonNull)
                 .toList();
     }
 
-    private FavoritePerformanceResponse toFavoritePerformance(
+    private IndexPerformanceResponse toIndexPerformance(
         IndexInfo indexInfo,
-        PerformancePeriodType periodType
+        IndexPerformancePeriodType periodType
     ) {
         List<IndexData> indexDataList = indexDataRepository.findByIndexInfoIdAndBaseDateBetween(
                 indexInfo.getId(),
@@ -68,7 +68,7 @@ public class FavoritePerformanceService {
         BigDecimal versus = currentPrice.subtract(beforePrice);
         BigDecimal fluctuationRate = calculateFluctuationRate(currentPrice, beforePrice);
 
-        return new FavoritePerformanceResponse(
+        return new IndexPerformanceResponse(
                 indexInfo.getId(),
                 indexInfo.getIndexClassification(),
                 indexInfo.getIndexName(),
@@ -79,7 +79,7 @@ public class FavoritePerformanceService {
         );
     }
 
-    private LocalDate getTargetDate(LocalDate currentDate, PerformancePeriodType periodType) {
+    private LocalDate getTargetDate(LocalDate currentDate, IndexPerformancePeriodType periodType) {
         return switch (periodType) {
             case DAILY -> currentDate.minusDays(1);
             case WEEKLY -> currentDate.minusWeeks(1);
