@@ -7,6 +7,7 @@ import com.sprint.mission.findex.domain.indexdata.controller.api.IndexDataPerfor
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -21,8 +22,9 @@ public class IndexDataPerformanceController implements IndexDataPerformanceApi {
     @Override
     @GetMapping("/favorite")
     public List<IndexPerformanceResponse> getFavoriteIndexPerformance(
-            IndexPerformancePeriodType indexPerformancePeriodType
+            @RequestParam(name = "periodType", defaultValue = "DAILY")
+            IndexPerformancePeriodType periodType
     ) {
-        return indexPerformanceService.getFavoriteIndexPerformance(indexPerformancePeriodType);
+        return indexPerformanceService.getFavoriteIndexPerformance(periodType);
     }
 }
