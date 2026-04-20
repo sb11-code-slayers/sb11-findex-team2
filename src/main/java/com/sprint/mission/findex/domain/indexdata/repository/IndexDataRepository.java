@@ -25,6 +25,13 @@ public interface IndexDataRepository extends JpaRepository<IndexData, UUID>,
 
   List<IndexData> findByBaseDateBetween(LocalDate from, LocalDate to);
 
+  Optional<IndexData> findFirstByIndexInfoIdOrderByBaseDateDesc(UUID indexInfoId);
+
+  Optional<IndexData> findFirstByIndexInfoIdAndBaseDateLessThanEqualOrderByBaseDateDesc(
+          UUID indexInfoId,
+          LocalDate baseDate
+  );
+
   @Query("SELECT d FROM IndexData d WHERE " +
       "(:indexInfoId IS NULL OR d.indexInfo.id = :indexInfoId) AND " +
       "(:startDate IS NULL OR d.baseDate >= :startDate) AND " +
@@ -35,5 +42,5 @@ public interface IndexDataRepository extends JpaRepository<IndexData, UUID>,
       @Param("indexInfoId") UUID indexInfoId,
       @Param("startDate") LocalDate startDate,
       @Param("endDate") LocalDate endDate
-  );;
+  );
 }

@@ -26,7 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class IndexPerformanceRankService {
 
-    private static final LocalDate MIN_DATE = LocalDate.of(1970, 1, 1);
+    private static final int DEFAULT_LIMIT = 10;
+    private static final int MAX_LIMIT = 100;
 
     private final IndexInfoRepository indexInfoRepository;
     private final IndexDataRepository indexDataRepository;
@@ -36,7 +37,9 @@ public class IndexPerformanceRankService {
             IndexPerformancePeriodType periodType,
             Integer limit
     ) {
-        int safeLimit = (limit == null || limit < 1) ? 10 : limit;
+        int safeLimit = (limit == null || limit < 1)
+                ? DEFAULT_LIMIT
+                : Math.min(limit, MAX_LIMIT);
 
         List<IndexInfo> targetIndexInfos = getTargetIndexInfos(indexInfoId);
 
@@ -70,20 +73,22 @@ public class IndexPerformanceRankService {
             IndexInfo indexInfo,
             IndexPerformancePeriodType periodType
     ) {
-        List<IndexData> sorted = indexDataRepository
-                .findByIndexInfoIdAndBaseDateBetween(indexInfo.getId(), MIN_DATE, LocalDate.now())
-                .stream()
-                .sorted(Comparator.comparing(IndexData::getBaseDate).reversed())
-                .toList();
+        IndexData currentData = indexDataRepository
+                .findFirstByIndexInfoIdOrderByBaseDateDesc(indexInfo.getId())
+                .orElse(null);
 
-        if (sorted.isEmpty()) {
+        if (currentData == null) {
             return null;
         }
 
-        IndexData currentData = sorted.get(0);
         LocalDate targetDate = getTargetDate(currentData.getBaseDate(), periodType);
-        IndexData beforeData = findClosestBeforeOrEqual(sorted, targetDate);
 
+        IndexData beforeData = indexDataRepository
+                .findFirstByIndexInfoIdAndBaseDateLessThanEqualOrderByBaseDateDesc(
+                        indexInfo.getId(),
+                        targetDate
+                )
+                .orElse(null);
         if (beforeData == null) {
             return null;
         }
