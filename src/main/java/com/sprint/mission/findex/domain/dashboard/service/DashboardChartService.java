@@ -25,7 +25,7 @@ import static com.sprint.mission.findex.global.exception.ApiException.ERROR.INDE
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class IndexChartService {
+public class DashboardChartService {
 
     private final IndexInfoRepository indexInfoRepository;
     private final IndexDataRepository indexDataRepository;

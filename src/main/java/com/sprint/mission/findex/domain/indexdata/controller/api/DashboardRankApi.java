@@ -17,7 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(name = "지수 데이터 API", description = "지수 데이터 관리 API")
-public interface IndexDataRankApi {
+public interface DashboardRankApi {
 
     @Operation(
             summary = "지수 성과 랭킹 조회",

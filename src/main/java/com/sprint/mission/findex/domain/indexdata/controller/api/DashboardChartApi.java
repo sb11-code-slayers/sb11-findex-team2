@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.UUID;
 
 @Tag(name = "지수 데이터 API", description = "지수 데이터 관리 API")
-public interface IndexDataChartApi {
+public interface DashboardChartApi {
 
     @Operation(
             summary = "지수 차트 조회",

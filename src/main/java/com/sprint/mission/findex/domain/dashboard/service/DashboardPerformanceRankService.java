@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class IndexPerformanceRankService {
+public class DashboardPerformanceRankService {
 
     private static final int DEFAULT_LIMIT = 10;
     private static final int MAX_LIMIT = 100;

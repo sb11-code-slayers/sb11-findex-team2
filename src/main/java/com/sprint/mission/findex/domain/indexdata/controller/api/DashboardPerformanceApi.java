@@ -15,7 +15,7 @@ import java.util.List;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(name = "지수 데이터 API", description = "지수 데이터 관리 API")
-public interface IndexDataPerformanceApi {
+public interface DashboardPerformanceApi {
 
     @Operation(
             summary = "관심 지수 성과 조회",

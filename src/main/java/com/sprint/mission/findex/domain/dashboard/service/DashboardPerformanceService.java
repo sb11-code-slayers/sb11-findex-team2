@@ -20,7 +20,7 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class IndexPerformanceService {
+public class DashboardPerformanceService {
 
     private static final LocalDate Min_Date = LocalDate.of(1900, 1, 1);
 
