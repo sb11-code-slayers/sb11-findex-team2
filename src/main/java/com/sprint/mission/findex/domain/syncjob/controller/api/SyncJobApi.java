@@ -16,18 +16,19 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
 import java.util.UUID;
 
 @Tag(name = "Sync Job", description = "지수 데이터 연동 및 이력 관리 API (M4)")
 public interface SyncJobApi {
 
   @Operation(summary = "지수 정보 연동", description = "KRX Open API에서 기준 날짜의 전체 지수 정보를 조회하여 DB에 생성 또는 갱신하고 SyncJob 이력을 저장합니다.")
-  ResponseEntity<String> syncIndexInfos(
+  ResponseEntity<List<SyncJobResponse>> syncIndexInfos(
       @Valid @RequestBody IndexInfoSyncRequest request,
       HttpServletRequest servletRequest);
 
   @Operation(summary = "지수 데이터 수동 연동", description = "지정한 기간(baseDateFrom ~ baseDateTo)의 하나 이상의 지수 데이터를 외부 API로부터 연동합니다.")
-  ResponseEntity<String> syncIndexData(
+  ResponseEntity<List<SyncJobResponse>> syncIndexData(
       @Valid @RequestBody IndexDataSyncRequest request,
       HttpServletRequest servletRequest);
 

@@ -4,6 +4,7 @@ import com.sprint.mission.findex.domain.indexinfo.dto.IndexInfoCreateRequest;
 import com.sprint.mission.findex.domain.indexinfo.dto.IndexInfoUpdateRequest;
 import com.sprint.mission.findex.domain.indexinfo.entity.IndexInfo;
 import com.sprint.mission.findex.domain.indexinfo.service.IndexInfoService;
+import com.sprint.mission.findex.domain.syncjob.dto.SyncJobResponse;
 import com.sprint.mission.findex.domain.syncjob.entity.JobResult;
 import com.sprint.mission.findex.domain.syncjob.entity.JobType;
 import com.sprint.mission.findex.domain.syncjob.entity.SyncJob;
@@ -21,18 +22,18 @@ public class IndexInfoSyncProcessor {
     private final SyncJobRepository syncJobRepository;
 
     @Transactional
-    public void createAndSaveHistory(IndexInfoCreateRequest createRequest, LocalDate targetDate, String workerIp) {
+    public SyncJobResponse createAndSaveHistory(IndexInfoCreateRequest createRequest, LocalDate targetDate, String workerIp) {
         IndexInfo created = indexInfoService.createByOpenAPI(createRequest);
-        saveHistory(created, targetDate, workerIp, JobResult.SUCCESS, null);
+        return saveHistory(created, targetDate, workerIp, JobResult.SUCCESS, null);
     }
 
     @Transactional
-    public void updateAndSaveHistory(IndexInfo indexInfo, IndexInfoUpdateRequest updateRequest, LocalDate targetDate, String workerIp) {
+    public SyncJobResponse updateAndSaveHistory(IndexInfo indexInfo, IndexInfoUpdateRequest updateRequest, LocalDate targetDate, String workerIp) {
         indexInfoService.updateByOpenAPI(indexInfo, updateRequest);
-        saveHistory(indexInfo, targetDate, workerIp, JobResult.SUCCESS, null);
+        return saveHistory(indexInfo, targetDate, workerIp, JobResult.SUCCESS, null);
     }
 
-    private void saveHistory(IndexInfo indexInfo, LocalDate targetDate, String workerIp, JobResult result, String errorMessage) {
+    private SyncJobResponse saveHistory(IndexInfo indexInfo, LocalDate targetDate, String workerIp, JobResult result, String errorMessage) {
         SyncJob syncJob = SyncJob.builder()
             .indexInfo(indexInfo)
             .jobType(JobType.INDEX_INFO)
@@ -41,6 +42,6 @@ public class IndexInfoSyncProcessor {
             .result(result)
             .errorMessage(errorMessage)
             .build();
-        syncJobRepository.save(syncJob);
+        return SyncJobResponse.from(syncJobRepository.save(syncJob));
     }
 }

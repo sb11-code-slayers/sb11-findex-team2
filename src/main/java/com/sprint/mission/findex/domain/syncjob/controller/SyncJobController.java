@@ -11,9 +11,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -25,30 +27,29 @@ public class SyncJobController implements SyncJobApi {
 
   @PostMapping("/index-infos")
   @Override
-  public ResponseEntity<String> syncIndexInfos(
+  public ResponseEntity<List<SyncJobResponse>> syncIndexInfos(
       @Valid @RequestBody IndexInfoSyncRequest request,
       HttpServletRequest servletRequest) {
 
     String workerIp = servletRequest.getRemoteAddr();
-    syncJobService.syncIndexInfos(request.targetDate(), workerIp);
-    return ResponseEntity.ok("지수 정보 연동이 성공적으로 완료되었습니다.");
+    List<SyncJobResponse> results = syncJobService.syncIndexInfos(request.targetDate(), workerIp);
+    return ResponseEntity.status(HttpStatus.ACCEPTED).body(results);
   }
 
   @PostMapping("/index-data")
   @Override
-  public ResponseEntity<String> syncIndexData(
+  public ResponseEntity<List<SyncJobResponse>> syncIndexData(
       @Valid @RequestBody IndexDataSyncRequest request,
       HttpServletRequest servletRequest) {
 
     String workerIp = servletRequest.getRemoteAddr();
-
-    syncJobService.syncIndexData(
+    List<SyncJobResponse> results = syncJobService.syncIndexData(
         request.indexInfoIds(),
         request.baseDateFrom(),
         request.baseDateTo(),
         workerIp
     );
-    return ResponseEntity.ok("데이터 연동이 성공적으로 완료되었습니다.");
+    return ResponseEntity.status(HttpStatus.ACCEPTED).body(results);
   }
 
   @GetMapping
