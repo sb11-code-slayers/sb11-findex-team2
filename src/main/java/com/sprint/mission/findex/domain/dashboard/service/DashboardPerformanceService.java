@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -22,16 +21,13 @@ import java.util.Objects;
 @Transactional(readOnly = true)
 public class DashboardPerformanceService {
 
-    private static final LocalDate Min_Date = LocalDate.of(1900, 1, 1);
-
     private final IndexInfoRepository indexInfoRepository;
     private final IndexDataRepository indexDataRepository;
 
     public List<IndexPerformanceResponse> getFavoriteIndexPerformance(
             IndexPerformancePeriodType periodType
     ) {
-        return indexInfoRepository.findAll().stream()
-                .filter(indexInfo -> indexInfo.getFavorite())
+        return indexInfoRepository.findAllByFavoriteTrue().stream()
                 .map(indexInfo -> toIndexPerformance(indexInfo, periodType))
                 .filter(Objects::nonNull)
                 .toList();
@@ -41,23 +37,22 @@ public class DashboardPerformanceService {
         IndexInfo indexInfo,
         IndexPerformancePeriodType periodType
     ) {
-        List<IndexData> indexDataList = indexDataRepository.findByIndexInfoIdAndBaseDateBetween(
-                indexInfo.getId(),
-                Min_Date,
-                LocalDate.now()
-        );
+        IndexData currentData = indexDataRepository
+                .findFirstByIndexInfoIdOrderByBaseDateDesc(indexInfo.getId())
+                .orElse(null);
 
-        if (indexDataList.isEmpty()) {
+        if (currentData == null) {
             return null;
         }
 
-        List<IndexData> sorted = indexDataList.stream()
-                .sorted(Comparator.comparing(IndexData::getBaseDate).reversed())
-                .toList();
-
-        IndexData currentData = sorted.get(0);
         LocalDate targetDate = getTargetDate(currentData.getBaseDate(), periodType);
-        IndexData beforeData = findClosestBeforeOrEqual(sorted, targetDate);
+
+        IndexData beforeData = indexDataRepository
+                .findFirstByIndexInfoIdAndBaseDateLessThanEqualOrderByBaseDateDesc(
+                        indexInfo.getId(),
+                        targetDate
+                )
+                .orElse(null);
 
         if (beforeData == null) {
             return null;
@@ -85,15 +80,6 @@ public class DashboardPerformanceService {
             case WEEKLY -> currentDate.minusWeeks(1);
             case MONTHLY -> currentDate.minusMonths(1);
         };
-    }
-
-    private IndexData findClosestBeforeOrEqual(List<IndexData> sorted, LocalDate targetDate) {
-        for (IndexData indexData : sorted) {
-            if (!indexData.getBaseDate().isAfter(targetDate)) {
-                return indexData;
-            }
-        }
-        return null;
     }
 
     private BigDecimal calculateFluctuationRate(
