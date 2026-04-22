@@ -16,7 +16,7 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.function.Function.identity;
@@ -57,17 +57,17 @@ public class DashboardPerformanceService {
                         currentDataByIndexId.get(indexInfo.getId()),
                         beforeDataByIndexId.get(indexInfo.getId())
                 ))
-                .filter(Objects::nonNull)
+                .flatMap(Optional::stream)
                 .toList();
     }
 
-    private IndexPerformanceResponse toIndexPerformance(
+    private Optional<IndexPerformanceResponse> toIndexPerformance(
         IndexInfo indexInfo,
         IndexData currentData,
         IndexData beforeData
     ) {
         if (currentData == null || beforeData == null) {
-            return null;
+            return Optional.empty();
         }
 
         BigDecimal currentPrice = currentData.getClosingPrice();
@@ -75,7 +75,7 @@ public class DashboardPerformanceService {
         BigDecimal versus = currentPrice.subtract(beforePrice);
         BigDecimal fluctuationRate = calculateFluctuationRate(currentPrice, beforePrice);
 
-        return new IndexPerformanceResponse(
+        return Optional.of(new IndexPerformanceResponse(
                 indexInfo.getId(),
                 indexInfo.getIndexClassification(),
                 indexInfo.getIndexName(),
@@ -83,7 +83,7 @@ public class DashboardPerformanceService {
                 fluctuationRate,
                 currentPrice,
                 beforePrice
-        );
+        ));
     }
 
     private Map<UUID, IndexData> getBeforeDataByIndexId(
