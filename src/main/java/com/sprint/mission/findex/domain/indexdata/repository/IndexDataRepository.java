@@ -34,6 +34,38 @@ public interface IndexDataRepository extends JpaRepository<IndexData, UUID>,
       LocalDate baseDate
   );
 
+  @Query("""
+      select d
+      from IndexData d
+      join fetch d.indexInfo i
+      where i.id in :indexInfoIds
+        and d.baseDate = (
+            select max(d2.baseDate)
+            from IndexData d2
+            where d2.indexInfo.id = i.id
+        )
+      """)
+  List<IndexData> findLatestByIndexInfoIds(
+      @Param("indexInfoIds") List<UUID> indexInfoIds
+  );
+
+  @Query("""
+      select d
+      from IndexData d
+      join fetch d.indexInfo i
+      where i.id in :indexInfoIds
+        and d.baseDate = (
+            select max(d2.baseDate)
+            from IndexData d2
+            where d2.indexInfo.id = i.id
+              and d2.baseDate <= :targetDate
+        )
+      """)
+  List<IndexData> findLatestByIndexInfoIdsAndBaseDateLessThanEqual(
+      @Param("indexInfoIds") List<UUID> indexInfoIds,
+      @Param("targetDate") LocalDate targetDate
+  );
+
   @Query("SELECT d FROM IndexData d JOIN FETCH d.indexInfo WHERE " +
       "(:indexInfoId IS NULL OR d.indexInfo.id = :indexInfoId) AND " +
       "(:startDate IS NULL OR d.baseDate >= :startDate) AND " +

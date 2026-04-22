@@ -13,8 +13,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
+
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 @Service
 @RequiredArgsConstructor
@@ -27,34 +36,37 @@ public class DashboardPerformanceService {
     public List<IndexPerformanceResponse> getFavoriteIndexPerformance(
             IndexPerformancePeriodType periodType
     ) {
-        return indexInfoRepository.findAllByFavoriteTrue().stream()
-                .map(indexInfo -> toIndexPerformance(indexInfo, periodType))
+        List<IndexInfo> favoriteIndexInfos = indexInfoRepository.findAllByFavoriteTrue();
+        if (favoriteIndexInfos.isEmpty()) {
+            return List.of();
+        }
+
+        List<UUID> indexInfoIds = favoriteIndexInfos.stream()
+                .map(IndexInfo::getId)
+                .toList();
+
+        Map<UUID, IndexData> currentDataByIndexId = indexDataRepository.findLatestByIndexInfoIds(indexInfoIds)
+                .stream()
+                .collect(toMap(indexData -> indexData.getIndexInfo().getId(), identity()));
+
+        Map<UUID, IndexData> beforeDataByIndexId = getBeforeDataByIndexId(currentDataByIndexId, periodType);
+
+        return favoriteIndexInfos.stream()
+                .map(indexInfo -> toIndexPerformance(
+                        indexInfo,
+                        currentDataByIndexId.get(indexInfo.getId()),
+                        beforeDataByIndexId.get(indexInfo.getId())
+                ))
                 .filter(Objects::nonNull)
                 .toList();
     }
 
     private IndexPerformanceResponse toIndexPerformance(
         IndexInfo indexInfo,
-        IndexPerformancePeriodType periodType
+        IndexData currentData,
+        IndexData beforeData
     ) {
-        IndexData currentData = indexDataRepository
-                .findFirstByIndexInfoIdOrderByBaseDateDesc(indexInfo.getId())
-                .orElse(null);
-
-        if (currentData == null) {
-            return null;
-        }
-
-        LocalDate targetDate = getTargetDate(currentData.getBaseDate(), periodType);
-
-        IndexData beforeData = indexDataRepository
-                .findFirstByIndexInfoIdAndBaseDateLessThanEqualOrderByBaseDateDesc(
-                        indexInfo.getId(),
-                        targetDate
-                )
-                .orElse(null);
-
-        if (beforeData == null) {
+        if (currentData == null || beforeData == null) {
             return null;
         }
 
@@ -72,6 +84,27 @@ public class DashboardPerformanceService {
                 currentPrice,
                 beforePrice
         );
+    }
+
+    private Map<UUID, IndexData> getBeforeDataByIndexId(
+            Map<UUID, IndexData> currentDataByIndexId,
+            IndexPerformancePeriodType periodType
+    ) {
+        Map<LocalDate, List<UUID>> indexIdsByTargetDate = currentDataByIndexId.values().stream()
+                .collect(groupingBy(
+                        indexData -> getTargetDate(indexData.getBaseDate(), periodType),
+                        mapping(indexData -> indexData.getIndexInfo().getId(), toList())
+                ));
+
+        Map<UUID, IndexData> beforeDataByIndexId = new HashMap<>();
+        indexIdsByTargetDate.forEach((targetDate, indexInfoIds) ->
+                indexDataRepository.findLatestByIndexInfoIdsAndBaseDateLessThanEqual(indexInfoIds, targetDate)
+                        .forEach(indexData ->
+                                beforeDataByIndexId.put(indexData.getIndexInfo().getId(), indexData)
+                        )
+        );
+
+        return beforeDataByIndexId;
     }
 
     private LocalDate getTargetDate(LocalDate currentDate, IndexPerformancePeriodType periodType) {
